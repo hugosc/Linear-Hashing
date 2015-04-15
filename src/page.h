@@ -31,11 +31,32 @@ inline int page::incr_disc_writes() { return ++disc_writes; }
 
 //file header page. Contains the info about the hash table in the file
 class fheader_page : public page {
+	private :
+		int n_buckets;
+		int n_pages;
+		int level;
+		int next;
+
 	public :
 		fheader_page() : page(page::fheader_page) {}
-		//TODO
+		inline void set_n_buckets(int);
+		inline void set_n_pages(int);
+		inline void set_level(int);
+		inline void set_next(int);
+		inline int get_n_buckets();
+		inline int get_n_pages();
+		inline int get_level();
+		inline int get_next();		
 };
 
+inline void page::set_n_buckets(int buckets) { n_buckets = buckets; }
+inline void page::set_n_pages(int pages) { n_pages = pages; }
+inline void set_level(int l) {level = l; }
+inline void set_next(int n) {next = n; }
+inline int get_n_buckets() {return n_buckets;}
+inline int get_n_pages() {return n_pages;}
+inline int get_level() {return level;}
+inline int get_next() {return next;}	
 //----------end fheader_page class----------
 
 
@@ -79,8 +100,13 @@ inline bool pointer_page::is_full() { return ptr_bitmap.all(); }
 
 //content page. Stores the actual index data, i.e. a lot of <key,rid>'s
 class content_page : public page {
+	privete :
+
 	public :
+		static const int n_data = 14;
 		content_page() : page(page::content_page) {}
-		//TODO
+		inline void add_data(std::pair);
+		inline pair <int,int> get_data();
+		
 };
 //----------end content_page class----------
