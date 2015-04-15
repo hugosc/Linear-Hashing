@@ -86,7 +86,7 @@ inline fheader_page* hash_manager::load_fheader_page() {
 }
 
 inline pointer_page* hash_manager::load_pointer_page() {
-	pointer_page* new_page = new pointer_page()
+	pointer_page* new_page = new pointer_page();
 }
 
 inline content_page* hash_manager::load_content_page() {
