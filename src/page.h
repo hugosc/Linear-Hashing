@@ -46,7 +46,7 @@ class fheader_page : public page {
 		inline int get_n_buckets();
 		inline int get_n_pages();
 		inline int get_level();
-		inline int get_next();		
+		inline int get_next();
 };
 
 inline void page::set_n_buckets(int buckets) { n_buckets = buckets; }
@@ -56,17 +56,18 @@ inline void set_next(int n) {next = n; }
 inline int get_n_buckets() {return n_buckets;}
 inline int get_n_pages() {return n_pages;}
 inline int get_level() {return level;}
-inline int get_next() {return next;}	
+inline int get_next() {return next;}
 //----------end fheader_page class----------
 
 
 //pointer page. Stores pointers to overflow pages from the buckets
 class pointer_page : public page {
 	public :
-		static const int n_pointers = 29;
+		static const int n_pointers = 28;
 		pointer_page() : page(page::pointer_page) {}
 		pointer_page(std::array<int,n_pointers> ptrs, int bitmap) : page(page::pointer_page) , ptr_bitmap(bitmap), ptr_array(ptrs) {}
 		inline void add_ptr(int);
+		inline void remove_ptr(int);
 		inline int get_ptr(int);
 		inline bool is_full();
 	private :
@@ -94,6 +95,10 @@ inline void pointer_page::add_ptr(int ptr) {
 	}
 }
 
+inline void pointer_page::remove_ptr(int pos) {
+	if (pos < n_pointers) ptr_bitmap.reset(pos);
+}
+
 inline int pointer_page::get_ptr (int i) { return ptr_array[i]; }
 inline bool pointer_page::is_full() { return ptr_bitmap.all(); }
 //----------end pointer_page class----------
@@ -107,6 +112,6 @@ class content_page : public page {
 		content_page() : page(page::content_page) {}
 		inline void add_data(std::pair);
 		inline pair <int,int> get_data();
-		
+
 };
 //----------end content_page class----------
