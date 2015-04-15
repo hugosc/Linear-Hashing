@@ -31,21 +31,43 @@ inline int page::incr_disc_writes() { return ++disc_writes; }
 
 //file header page. Contains the info about the hash table in the file
 class fheader_page : public page {
+	private :
+		int n_buckets;
+		int n_pages;
+		int level;
+		int next;
+
 	public :
 		fheader_page() : page(page::fheader_page) {}
-		//TODO
+		inline void set_n_buckets(int);
+		inline void set_n_pages(int);
+		inline void set_level(int);
+		inline void set_next(int);
+		inline int get_n_buckets();
+		inline int get_n_pages();
+		inline int get_level();
+		inline int get_next();
 };
 
+inline void page::set_n_buckets(int buckets) { n_buckets = buckets; }
+inline void page::set_n_pages(int pages) { n_pages = pages; }
+inline void set_level(int l) {level = l; }
+inline void set_next(int n) {next = n; }
+inline int get_n_buckets() {return n_buckets;}
+inline int get_n_pages() {return n_pages;}
+inline int get_level() {return level;}
+inline int get_next() {return next;}
 //----------end fheader_page class----------
 
 
 //pointer page. Stores pointers to overflow pages from the buckets
 class pointer_page : public page {
 	public :
-		static const int n_pointers = 29;
+		static const int n_pointers = 28;
 		pointer_page() : page(page::pointer_page) {}
 		pointer_page(std::array<int,n_pointers> ptrs, int bitmap) : page(page::pointer_page) , ptr_bitmap(bitmap), ptr_array(ptrs) {}
 		inline void add_ptr(int);
+		inline void remove_ptr(int);
 		inline int get_ptr(int);
 		inline bool is_full();
 	private :
@@ -73,14 +95,23 @@ inline void pointer_page::add_ptr(int ptr) {
 	}
 }
 
+inline void pointer_page::remove_ptr(int pos) {
+	if (pos < n_pointers) ptr_bitmap.reset(pos);
+}
+
 inline int pointer_page::get_ptr (int i) { return ptr_array[i]; }
 inline bool pointer_page::is_full() { return ptr_bitmap.all(); }
 //----------end pointer_page class----------
 
 //content page. Stores the actual index data, i.e. a lot of <key,rid>'s
 class content_page : public page {
+	privete :
+
 	public :
+		static const int n_data = 14;
 		content_page() : page(page::content_page) {}
-		//TODO
+		inline void add_data(std::pair);
+		inline pair <int,int> get_data();
+
 };
 //----------end content_page class----------
