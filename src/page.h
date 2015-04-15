@@ -105,13 +105,37 @@ inline bool pointer_page::is_full() { return ptr_bitmap.all(); }
 
 //content page. Stores the actual index data, i.e. a lot of <key,rid>'s
 class content_page : public page {
-	privete :
-
+	private :
+		std::bitset<n_data>   data_bitmap;
+		std::array<int,n_data> data_array;
+		inline int available_slot();
 	public :
 		static const int n_data = 14;
 		content_page() : page(page::content_page) {}
-		inline void add_data(std::pair);
-		inline pair <int,int> get_data();
+		inline void add_data(std::pair<int,int>);
+		inline std::pair <int,int> get_data();
+		inline bool is_full();
 
 };
+
+inline int content_page::available_slot(){
+	auto bmp = data_bitmap.to_ulong();
+	int i = 0;
+	while(bmp%2 == 1){
+		bmp = bmp >> 1;
+		++i;
+	}
+	return i;
+}
+
+inline void content_page::add_data(std::pair<int,int> p){
+	if(!data_bitmap.all()){
+		int i = available_slot();
+		data_array[i] = p;
+		data_bitmap.set(i);
+	}
+}
+
+inline std:pair<int,int> content_page::get_data(int i) { return data_array[i]; }
+inline bool content_page::is_full() { return data_bitmap.all(); }
 //----------end content_page class----------
