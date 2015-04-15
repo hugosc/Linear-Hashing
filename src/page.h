@@ -14,8 +14,10 @@ class page {
 		static const char fheader_page = 0;
 		static const char pointer_page = 1;
 		static const char content_page = 2;
+		static const int page_size = 128;
 		page (char t) : type(t), parent_pointer(-1), disc_writes(0) {};
 		page (char t, int parent_ptr, int dw) : type(t), parent_pointer(parent_ptr), disc_writes(dw) {}
+		virtual ~page() {}
 		inline void set_parent_ptr (int);
 		inline int get_parent_ptr ();
 		inline int incr_disc_writes ();
@@ -31,6 +33,7 @@ inline int page::incr_disc_writes() { return ++disc_writes; }
 class fheader_page : public page {
 	public :
 		fheader_page() : page(page::fheader_page) {}
+		//TODO
 };
 
 //----------end fheader_page class----------
@@ -51,13 +54,11 @@ class pointer_page : public page {
 		inline int available_slot();
 };
 
-//get rightmost available slot
+//get leftmost available slot
 inline int pointer_page::available_slot() {
-	auto nbmp = ~ptr_bitmap.to_ulong();
-	std::cout << "bitmap val:" << ~nbmp << std::endl;
-	int i=0;
-	while (nbmp%2 == 0) {
-		nbmp = nbmp >> 1;
+	auto bmp = ptr_bitmap.to_ulong(); int i=0;
+	while (bmp%2 == 1) {
+		bmp = bmp >> 1;
 		++i;
 	}
 	return i;
@@ -67,7 +68,6 @@ inline int pointer_page::available_slot() {
 inline void pointer_page::add_ptr(int ptr) {
 	if (!ptr_bitmap.all()) {
 		int i = available_slot();
-		std::cout << "index: " << i << std::endl;
 		ptr_array[i] = ptr;
 		ptr_bitmap.set(i);
 	}
@@ -81,5 +81,6 @@ inline bool pointer_page::is_full() { return ptr_bitmap.all(); }
 class content_page : public page {
 	public :
 		content_page() : page(page::content_page) {}
+		//TODO
 };
 //----------end content_page class----------
