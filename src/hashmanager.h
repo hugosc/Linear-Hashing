@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cassert>
 #include "page.h"
+#include <unistd.h>
 
 class hash_manager {
 	private :
@@ -23,23 +24,40 @@ class hash_manager {
 		inline fheader_page* load_fheader_page();
 		inline pointer_page* load_pointer_page();
 		inline content_page* load_content_page();
+		void buid_from_file();
+		void build_new();
 	public :
 		hash_manager(std::string, std::function<int (int)>);
+		~hash_manager();
 		void insert_data(int,int);
 		void remove_data(int);
 		int find_data(int);
-}
+};
 
 hash_manager::hash_manager(std::string fname, std::function<int (int)> f = [](int x){return x;}) : file_name(fname), func(f) {
-	file = fopen(file_name.c_string(),"r+");
-	assert("File needs to exist",file);
-	load_page_to_buffer(0);
-	fheader_page* file_header = dynamic_cast<fheader_page*>(page_from_buffer());
-	//Load page info into private variables
+	//if file exists
+	if (access(file_name.c_String(),F_OK) != -1) build_from_file();
+	else build_new();
+}
+
+hash_manager::~hash_manager() {
+	fclose(file);
+}
+void hash_manager::hash_manager build_new() {
+	file = fopen(file_name.c_str(),"w+");
 	//TODO
+}
 
-
-	delete fheader_page;
+void hash_manager::buid_from_file() {
+	file = fopen(file_name.c_str(),"r+");
+	load_page_to_buffer(0);
+	fheader_page* header_page = dynamic_cast<fheader_page*>(page_from_buffer());
+	original_size = header_page->get_orig_size();
+	n_buckets = header_page->get_n_buckets();
+	n_pages = header_page->get_n_pages();
+	level = header_page->get_level();
+	next = header_page->get_next();
+	delete header_page;
 }
 
 void hash_manager::insert_data(int search_key, int rid) {

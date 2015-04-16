@@ -32,6 +32,7 @@ inline int page::incr_disc_writes() { return ++disc_writes; }
 //file header page. Contains the info about the hash table in the file
 class fheader_page : public page {
 	private :
+		int original_size;
 		int n_buckets;
 		int n_pages;
 		int level;
@@ -39,24 +40,28 @@ class fheader_page : public page {
 
 	public :
 		fheader_page() : page(page::fheader_page) {}
+		inline void set_orig_size(int);
 		inline void set_n_buckets(int);
 		inline void set_n_pages(int);
 		inline void set_level(int);
 		inline void set_next(int);
+		inline int get_orig_size();
 		inline int get_n_buckets();
 		inline int get_n_pages();
 		inline int get_level();
 		inline int get_next();
 };
 
-inline void page::set_n_buckets(int buckets) { n_buckets = buckets; }
-inline void page::set_n_pages(int pages) { n_pages = pages; }
-inline void set_level(int l) {level = l; }
-inline void set_next(int n) {next = n; }
-inline int get_n_buckets() {return n_buckets;}
-inline int get_n_pages() {return n_pages;}
-inline int get_level() {return level;}
-inline int get_next() {return next;}
+inline void fheader_page::set_orig_size(int orig_size) {original_size = orig_size;}
+inline void fheader_page::set_n_buckets(int buckets) { n_buckets = buckets; }
+inline void fheader_page::set_n_pages(int pages) { n_pages = pages; }
+inline void fheader_page::set_level(int l) {level = l; }
+inline void fheader_page::set_next(int n) {next = n; }
+inline void fheader_page::ger_orig_size() {return original_size;}
+inline int fheader_page::get_n_buckets() {return n_buckets;}
+inline int fheader_page::get_n_pages() {return n_pages;}
+inline int fheader_page::get_level() {return level;}
+inline int fheader_page::get_next() {return next;}
 //----------end fheader_page class----------
 
 
