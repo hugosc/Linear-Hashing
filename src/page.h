@@ -3,6 +3,14 @@
 #include <iostream>
 
 namespace lhash {
+	//namespace constants
+	extern const char fheader_page = 0;
+	extern const char pointer_page = 1;
+	extern const char content_page = 2;
+	extern const int page_size = 128;
+	extern const int n_pointers = 28;
+	extern const int n_data = 14;
+
 	//base class which has the page header already defined, since it is common to all page types
 	class page {
 		protected :
@@ -64,7 +72,6 @@ namespace lhash {
 	//pointer page. Stores pointers to overflow pages from the buckets
 	class pointer_page : public page {
 		public :
-			static const int n_pointers = 28;
 			pointer_page() : page(page::pointer_page) {}
 			pointer_page(std::array<int,n_pointers> ptrs, int bitmap) : page(page::pointer_page) , ptr_bitmap(bitmap), ptr_array(ptrs) {}
 			inline void add_ptr(int);
@@ -111,9 +118,9 @@ namespace lhash {
 			std::array<int,n_data> data_array;
 			inline int available_slot();
 		public :
-			static const int n_data = 14;
 			content_page() : page(page::content_page) {}
 			inline void add_data(std::pair<int,int>);
+			inline void remove_data(int);
 			inline std::pair <int,int> get_data();
 			inline bool is_full();
 
@@ -135,6 +142,10 @@ namespace lhash {
 			data_array[i] = p;
 			data_bitmap.set(i);
 		}
+	}
+
+	inline void content_page::remove_data(int pos) {
+		if (pos < n_data) data_bitmap.reset(pos);
 	}
 
 	inline std:pair<int,int> content_page::get_data(int i) { return data_array[i]; }
