@@ -8,6 +8,15 @@ namespace lhash {
 		return (c[0] << 24)+(c[1] << 16)+(c[2] << 8)+c[3];
 	}
 
+	void int_to_chars (int n, char* c) {
+		char ones = ~0x00;
+		c[0] = (n >> 24) & ones;
+		c[1] = (n >> 16) & ones;
+		c[2] = (n >> 8) & ones;
+		c[3] = n & ones;
+
+	}
+
 	class hash_manager {
 		private :
 			std::string file_name;
@@ -29,6 +38,10 @@ namespace lhash {
 			inline fheader_page* load_fheader_page();
 			inline pointer_page* load_pointer_page();
 			inline content_page* load_content_page();
+			inline void write_fheader_page(fheader_page*);
+			inline void write_pointer_page(pointer_page*);
+			inline void write_content_page(content_page*);
+			content_page* page_with_key(int);
 			void buid_from_file();
 			void build_new();
 		public :
@@ -100,7 +113,7 @@ namespace lhash {
 
 	//load page info into buffer, deletes page.
 	void hash_manager::write_page_to_buffer(page* p) {
-		//TODO
+
 	}
 
 	inline fheader_page* hash_manager::load_fheader_page() {
