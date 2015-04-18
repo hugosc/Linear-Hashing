@@ -4,9 +4,9 @@
 
 namespace lhash {
 	//namespace constants
-	extern const char fheader_page = 0;
-	extern const char pointer_page = 1;
-	extern const char content_page = 2;
+	extern const char fheader_page_t = 0;
+	extern const char pointer_page_t = 1;
+	extern const char content_page_t = 2;
 	extern const int page_size = 128;
 	extern const int n_pointers = 28;
 	extern const int n_data = 14;
@@ -24,12 +24,14 @@ namespace lhash {
 			virtual ~page() {}
 			inline void set_parent_ptr (int);
 			inline int get_parent_ptr ();
-			inline int incr_disc_writes ();
+			inline void incr_disc_writes ();
+			inline int get_disc_writes ();
 	};
 
 	inline void page::set_parent_ptr(int ptr) { parent_pointer = ptr; }
 	inline int page::get_parent_ptr() { return parent_pointer; }
-	inline int page::incr_disc_writes() { return ++disc_writes; }
+	inline void page::incr_disc_writes() { ++disc_writes; }
+	inline int page::get_disc_writes() { return disc_writes; }
 
 	//-----------end page class-----------------
 
@@ -43,7 +45,7 @@ namespace lhash {
 			int next;
 
 		public :
-			fheader_page() : page(page::fheader_page) {}
+			fheader_page() : page(fheader_page_t) {}
 			inline void set_orig_size(int);
 			inline void set_n_buckets(int);
 			inline void set_n_pages(int);
@@ -72,12 +74,14 @@ namespace lhash {
 	//pointer page. Stores pointers to overflow pages from the buckets
 	class pointer_page : public page {
 		public :
-			pointer_page() : page(page::pointer_page) {}
+			pointer_page() : page(pointer_page_t) {}
 			pointer_page(std::array<int,n_pointers> ptrs, int bitmap) : page(page::pointer_page) , ptr_bitmap(bitmap), ptr_array(ptrs) {}
+			inline bool has_ptr(int);
 			inline void add_ptr(int);
 			inline void remove_ptr(int);
 			inline int get_ptr(int);
 			inline bool is_full();
+			inline int get_bitmap();
 		private :
 			std::bitset<n_pointers>   ptr_bitmap;
 			std::array<int,n_pointers> ptr_array;
@@ -94,6 +98,10 @@ namespace lhash {
 		return i;
 	}
 
+	inline bool pointer_page::has_ptr(int pos) {
+		return ptr_bitmap[pos];
+	}
+
 	//insert pointer in available slot
 	inline void pointer_page::add_ptr(int ptr) {
 		if (!ptr_bitmap.all()) {
@@ -107,6 +115,7 @@ namespace lhash {
 		if (pos < n_pointers) ptr_bitmap.reset(pos);
 	}
 
+	inline int pointer_page::get_bitmap() { return static_cast<int>(ptr_bitmap.to_ulong()); }
 	inline int pointer_page::get_ptr (int i) { return ptr_array[i]; }
 	inline bool pointer_page::is_full() { return ptr_bitmap.all(); }
 	//----------end pointer_page class----------
@@ -118,11 +127,13 @@ namespace lhash {
 			std::array<int,n_data> data_array;
 			inline int available_slot();
 		public :
-			content_page() : page(page::content_page) {}
+			content_page() : page(content_page_t) {}
+			inline int has_data(int);
 			inline void add_data(std::pair<int,int>);
 			inline void remove_data(int);
-			inline std::pair <int,int> get_data();
+			inline std::pair <int,int> get_data(int);
 			inline bool is_full();
+			inline int get_bitmap();
 
 	};
 
@@ -134,6 +145,10 @@ namespace lhash {
 			++i;
 		}
 		return i;
+	}
+
+	inline bool content_page::has_data(int pos) {
+		return data_bitmap[pos];
 	}
 
 	inline void content_page::add_data(std::pair<int,int> p){
@@ -148,6 +163,7 @@ namespace lhash {
 		if (pos < n_data) data_bitmap.reset(pos);
 	}
 
+	inline int content_page::get_bitmap() { return static_cast<int>(data_bitmap.to_ulong()); }
 	inline std:pair<int,int> content_page::get_data(int i) { return data_array[i]; }
 	inline bool content_page::is_full() { return data_bitmap.all(); }
 	//----------end content_page class----------
