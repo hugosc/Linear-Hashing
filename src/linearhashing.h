@@ -2,7 +2,7 @@
 #include <array>
 #include <string>
 #include <bitset>
-
+#include <unistd.h>
 
 class hash_manager {
 	private :
