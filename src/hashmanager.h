@@ -115,27 +115,59 @@ namespace lhash {
 		return nullptr;
 	}
 
+
+	int hash_manager::bucket_pos(int search_key){
+		bucketh = hash1(search_key);
+
+		if( bucketh < n_buckets){
+			return (bucketh*(3*page_size))+page_size;
+		}else{
+			bucketh = hash0(search_key);
+			return (bucketh*(3*page_size))+page_size;
+		}
+		return 0;
+	}
+
 	void hash_manager::insert_data(int search_key, int rid) {
 		//TODO
 	}
 
 	void hash_manager::remove_data(int search_key) {
-		//TODO
+		content_page* p = page_with_key(search_key);
+		if(page != nullptr){
+			for(int i = 0; i < n_data; i++){
+				if (p->has_data(i)){
+					if(p->get_data(i).first == search_key){
+						p->remove_data(i);
+						if (p->is_empty() && (p->get_parent() != -1)){
+							p->deleted_flag();
+						}
+					}
+				}
+			}
+		}
 	}
 
 	int hash_manager::find_data(int search_key) {
-		//TODO
+		content_page* page = page_with_key(search_key);
+		if(page != nullptr){
+			for(int i = 0; i < n_data; i++){
+				if (page->has_data(i)){
+					if(page->get_data(i).first == search_key){
+						return page->get_data(i).second;
+					}
+				}
+			}
+		}
 		return 0;
 	}
 
 	int hash_manager::hash0 (int search_key) {
-		//TODO
-		return 0;
+		return return search_key%((2^(level+1))*n_buckets);
 	}
 
 	int hash_manager::hash1 (int search_key) {
-		//TODO
-		return 0;
+		return search_key%((2^level)*n_buckets);
 	}
 
 	void hash_manager::load_page_to_buffer(int byte_pos) {

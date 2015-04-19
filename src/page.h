@@ -26,12 +26,14 @@ namespace lhash {
 			inline int get_parent_ptr ();
 			inline void incr_disc_writes ();
 			inline int get_disc_writes ();
+			inline void deleted_flag();
 	};
 
 	inline void page::set_parent_ptr(int ptr) { parent_pointer = ptr; }
 	inline int page::get_parent_ptr() { return parent_pointer; }
 	inline void page::incr_disc_writes() { ++disc_writes; }
 	inline int page::get_disc_writes() { return disc_writes; }
+	inline void page::deleted_flag(){ disc_writes = -1; }
 
 	//-----------end page class-----------------
 
@@ -82,6 +84,7 @@ namespace lhash {
 			inline int get_ptr(int);
 			inline bool is_full();
 			inline int get_bitmap();
+			inline bool is_empty();
 		private :
 			std::bitset<n_pointers>   ptr_bitmap;
 			std::array<int,n_pointers> ptr_array;
@@ -118,6 +121,7 @@ namespace lhash {
 	inline int pointer_page::get_bitmap() { return static_cast<int>(ptr_bitmap.to_ulong()); }
 	inline int pointer_page::get_ptr (int i) { return ptr_array[i]; }
 	inline bool pointer_page::is_full() { return ptr_bitmap.all(); }
+	inline bool pointer_page::is_empty(){ return ptr_bitmap.none(); }
 	//----------end pointer_page class----------
 
 	//content page. Stores the actual index data, i.e. a lot of <key,rid>'s
@@ -134,6 +138,7 @@ namespace lhash {
 			inline std::pair <int,int> get_data(int);
 			inline bool is_full();
 			inline int get_bitmap();
+			inline bool is_empty();
 
 	};
 
@@ -166,5 +171,6 @@ namespace lhash {
 	inline int content_page::get_bitmap() { return static_cast<int>(data_bitmap.to_ulong()); }
 	inline std:pair<int,int> content_page::get_data(int i) { return data_array[i]; }
 	inline bool content_page::is_full() { return data_bitmap.all(); }
+	inline bool content_page::is_empty(){ return ptr_bitmap.none(); }
 	//----------end content_page class----------
 }
