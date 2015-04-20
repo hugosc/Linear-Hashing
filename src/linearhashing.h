@@ -2,10 +2,25 @@
 #include <array>
 #include <string>
 #include <bitset>
+#include <vector>
 #include <unistd.h>
 
 class hash_manager {
-	private :
+	public :
+		static const char fheader_page_t = 0;
+		static const char pointer_page_t = 1;
+		static const char content_page_t = 2;
+		static const int page_size     = 128;
+		static const int n_pointers     = 28;
+		static const int n_data         = 14;
+		static const int original_size   = 4;
+
+		hash_manager(std::string);
+		int hash(int);
+		bool add_data(int,int);
+		int find_rid(int);
+		int delete_data(int);
+
 		class page {
 			protected :
 				int parent_pointer;
@@ -16,11 +31,11 @@ class hash_manager {
 				page (char t) : type(t), parent_pointer(-1), disc_writes(0) {};
 				page (const char[page_size]);
 				virtual ~page() {}
-				void bufferize(char[page_size]);
+				void bufferize(char[page_size]) const;
 				void set_parent_ptr (int);
 				int get_parent_ptr ();
 				int incr_disc_writes ();
-				int set_deleted_flag ();
+				void set_trash_flag ();
 				bool is_trash();
 		};
 
@@ -34,6 +49,7 @@ class hash_manager {
 
 			public :
 				fheader_page() : page(fheader_page_t) {}
+				fheader_page(const char[page_size]);
 				void bufferize(char[page_size]) const;
 				void set_orig_size(int);
 				void set_n_buckets(int);
@@ -81,12 +97,7 @@ class hash_manager {
 				int get_bitmap();
 				int find_rid(int);
 				int find_pos(int);
-
-				friend operator==(const content_page&, const content_page&);
 		};
-
-		bool operator==(const content_page&, const content_page&);
-		bool operator!=(const content_page&, const content_page&);
 
 		class bucket {
 			private :
@@ -105,6 +116,8 @@ class hash_manager {
 				bucket split_bucket();
 		};
 
+	private :
+
 		std::string file_name;
 		FILE* file;
 		char buffer[page_size];
@@ -121,21 +134,6 @@ class hash_manager {
 		void load_buffer(int);
 		void write_buffer(int);
 
-		int chars_to_int(const char*);
-		void int_to_chars(const int,char*);
-
-	public :
-		static const char fheader_page_t = 0;
-		static const char pointer_page_t = 1;
-		static const char content_page_t = 2;
-		static const int page_size     = 128;
-		static const int n_pointers     = 28;
-		static const int n_data         = 14;
-		static const int original_size   = 4;
-
-		hash_manager(std::string);
-		int hash(int);
-		bool add_data(int,int);
-		int find_rid(int);
-		int delete_data(int);
+		static int chars_to_int(const char*);
+		static void int_to_chars(const int,char*);
 };
