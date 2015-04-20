@@ -1,11 +1,11 @@
 #include "linearhashing.h"
 
-template <typename Page_t> hash_manager::load_page(int pos) {
+template <typename Page_t> Page_t hash_manager::load_page(int pos) {
 	load_buffer(pos);
 	return Page_t(buffer);
 }
 
-template <typename Page_t> hash_manager::save_page(const Page_t& p, int pos) {
+template <typename Page_t> void hash_manager::save_page(const Page_t& p, int pos) {
 	p.bufferize(buffer);
 	write_buffer(pos);
 }
@@ -17,12 +17,12 @@ char hash_manager::peek_type(int pos) {
 
 void hash_manager::load_buffer(int byte_pos) {
 	fseek(file,byte_pos,SEEK_SET);
-	fread(buffer,page_size,file);
+	fread((void*)buffer,page_size,1,file);
 }
 
 void hash_manager::write_buffer(int byte_pos) {
 	fseek(file,byte_pos,SEEK_SET);
-	fwrite(buffer,page_size,1,file);
+	fwrite((void*)buffer,page_size,1,file);
 }
 
 int hash_manager::chars_to_int(const char* c) {
@@ -38,12 +38,12 @@ void hash_manager::int_to_chars(const int n,char* c) {
 }
 
 hash_manager::hash_manager(std::string fname) : file_name(fname) {
-	if (access(file_name.c_String(),F_OK) != -1) build_from_file();
+	if (access(file_name.c_str(),F_OK) != -1) build_from_file();
 		else build_new();
-	}
 }
 
-void hash_manager::hash_manager build_new() {
+
+void hash_manager::hash_manager::build_new() {
 	file = fopen(file_name.c_str(),"w+");
 	fheader_page hpage;
 	hpage.set_orig_size(4);
@@ -52,11 +52,11 @@ void hash_manager::hash_manager build_new() {
 	hpage.set_level(0);
 	hpage.set_next(0);
 
-	save_page(hpage);
-	for (int i=0 ; i<hpage.get_n_buckets ; i++) {
-		load_page<content_page>(content_page(),i*3*page_size+page_size);
-		load_page<content_page>(content_page(),i*3*page_size+2*page_size);
-		load_page<pointer_page>(pointer_page(),i*3*page_size+3*page_size)
+	save_page(hpage,0);
+	for (int i=0 ; i<hpage.get_n_buckets() ; i++) {
+		save_page<content_page>(content_page(),i*3*page_size+page_size);
+		save_page<content_page>(content_page(),i*3*page_size+2*page_size);
+		save_page<pointer_page>(pointer_page(),i*3*page_size+3*page_size);
 	}
 	fclose(file);
 	build_from_file();
@@ -64,26 +64,26 @@ void hash_manager::hash_manager build_new() {
 
 void hash_manager::build_from_file() {
 	file = fopen(file_name.c_str(),"r+");
-	fheader_page hpage = load_page(0);
+	fheader_page hpage = load_page<fheader_page>(0);
 	n_buckets = hpage.get_n_buckets();
 	n_pages = hpage.get_n_pages();
 	level = hpage.get_level();
 	next = hpage.get_next();
 	for (int i=0 ; i<n_buckets ; i++) {
-		buckets.push_back(bucket((3*page_size*i) + page_size));
+		buckets.push_back(bucket((3*page_size*i) + page_size,this));
 	}
 }
 
 int hash_manager::hash0 (int search_key) {
-	return search_key%(pow(2,level+1))*original_size);
+	return (search_key%((int)pow(2,level+1))*original_size);
 }
 
 int hash_manager::hash1 (int search_key) {
-	return search_key%(pow(2,level)*original_size);
+	return (search_key%((int)pow(2,level)*original_size));
 }
 
 int hash_manager::hash(int search_key) {
-	bucketh = hash1(search_key);
+	int bucketh = hash1(search_key);
 
 		if( bucketh < n_buckets){
 			return bucketh;
@@ -98,10 +98,10 @@ bool hash_manager::add_data(int key,int rid) {
 	int hash_val = hash(key);
 	bool result = buckets[hash_val].add_data_entry(key,rid);
 	if(result == true){
-		buckets[next].split_bucket(next, n_buckets);
+		buckets.push_back(buckets[next].split_bucket(next, n_buckets));
 		n_buckets++;
 		if (n_buckets > original_size*pow(2,level)) level++;
-		next = (next+1)%(pow(2,level-1)*original_size);
+		next = (next+1)%((int)pow(2,level-1)*original_size);
 		return true;
 	}
 	return false;

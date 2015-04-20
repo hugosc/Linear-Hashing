@@ -4,6 +4,7 @@
 #include <bitset>
 #include <vector>
 #include <unistd.h>
+#include <cmath>
 
 class hash_manager {
 	public :
@@ -16,6 +17,8 @@ class hash_manager {
 		static const int original_size   = 4;
 
 		hash_manager(std::string);
+		int hash0(int);
+		int hash1(int);
 		int hash(int);
 		bool add_data(int,int);
 		int find_rid(int);
@@ -27,7 +30,7 @@ class hash_manager {
 				int disc_writes;
 
 			public :
-				const char type;
+				char type;
 				page (char t) : type(t), parent_pointer(-1), disc_writes(0) {};
 				page (const char[page_size]);
 				virtual ~page() {}
@@ -83,7 +86,7 @@ class hash_manager {
 		class content_page : public page {
 			private :
 				std::bitset<n_data>   data_bitmap;
-				std::array<int,n_data> data_array;
+				std::array<std::pair<int,int>,n_data> data_array;
 				int available_slot();
 			public :
 				content_page() : page(content_page_t) {}
@@ -103,9 +106,10 @@ class hash_manager {
 			private :
 				void add_oveflow_page(int);
 				void remove_overflow_page(int);
+				hash_manager* hash_t;
 
 			public :
-				bucket(int pos) : pos_in_file(pos) {}
+				bucket(int pos,hash_manager* ptr) : hash_t(ptr), pos_in_file(pos) {}
 				const int pos_in_file;
 				class overflow_iterator;
 
@@ -113,7 +117,11 @@ class hash_manager {
 				bool add_data_entry(int,int);
 				bool remove_data_entry(int);
 				int search_data_entry(int);
-				bucket split_bucket();
+				bucket split_bucket(int,int);
+				int remove_overflow_data(int);
+				int remove_static_data(int);
+				int search_overflow_pages(int);
+				int search_static_pages(int);
 		};
 
 	private :
@@ -133,7 +141,9 @@ class hash_manager {
 		char peek_type(int);
 		void load_buffer(int);
 		void write_buffer(int);
+		void build_new();
+		void build_from_file();
 
 		static int chars_to_int(const char*);
-		static void int_to_chars(const int,char*);
+		static void int_to_chars(int,char*);
 };
